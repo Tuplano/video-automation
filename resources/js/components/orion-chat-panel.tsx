@@ -86,6 +86,31 @@ export default function OrionChatPanel({
                             chatMessage.videoUrlFound !== undefined ||
                             chatMessage.videoUrl) ? (
                             <div className="mt-3 space-y-1 border-t border-white/10 pt-3 text-xs text-white/55">
+                                {chatMessage.videoStatus === 'processing' ? (
+                                    <div className="mb-3 overflow-hidden rounded-lg border border-white/10 bg-[#101010]">
+                                        <div className="relative aspect-[9/16] w-full max-w-[15rem] bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.18),transparent_40%),linear-gradient(180deg,#181818,#0b0b0b)]">
+                                            <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.08),transparent)] animate-pulse" />
+                                            <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/35 to-transparent" />
+                                            <div className="absolute inset-x-4 top-4 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-white/55">
+                                                <span>Generating</span>
+                                                <Spinner className="size-3.5" />
+                                            </div>
+                                            <div className="absolute inset-x-4 bottom-4 space-y-3">
+                                                <div className="h-2.5 w-3/4 rounded-full bg-white/12" />
+                                                <div className="h-2.5 w-1/2 rounded-full bg-white/10" />
+                                                <div className="flex items-center gap-2 text-[11px] text-white/50">
+                                                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-black/30">
+                                                        <Spinner className="size-3" />
+                                                    </span>
+                                                    <span>Rendering video preview...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="border-t border-white/10 px-3 py-2 text-xs text-white/60">
+                                            Orion will attach the finished video here once VEO returns the URL.
+                                        </div>
+                                    </div>
+                                ) : null}
                                 <p>
                                     Generate nonce:{' '}
                                     <span className="text-white/80">
@@ -142,15 +167,29 @@ export default function OrionChatPanel({
                                             : 'missing'}
                                     </span>
                                 </p>
+                                {chatMessage.videoStatus === 'failed' && chatMessage.videoError ? (
+                                    <p className="text-amber-300">
+                                        {chatMessage.videoError}
+                                    </p>
+                                ) : null}
                                 {chatMessage.videoUrl ? (
-                                    <a
-                                        href={chatMessage.videoUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex text-[#f97316] transition hover:text-[#fb8b3d]"
-                                    >
-                                        View generated video
-                                    </a>
+                                    <div className="space-y-3 pt-2">
+                                        <video
+                                            src={chatMessage.videoUrl}
+                                            controls
+                                            playsInline
+                                            preload="metadata"
+                                            className="aspect-[9/16] w-full max-w-[15rem] rounded-lg border border-white/10 bg-black"
+                                        />
+                                        <a
+                                            href={chatMessage.videoUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex text-[#f97316] transition hover:text-[#fb8b3d]"
+                                        >
+                                            Open video in new tab
+                                        </a>
+                                    </div>
                                 ) : null}
                             </div>
                         ) : null}

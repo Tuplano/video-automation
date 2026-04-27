@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { store } from '@/routes/orion/chat';
+import { status, store } from '@/routes/orion/chat';
 
 export type ChatMessage = {
     id: string;
@@ -13,6 +13,8 @@ export type ChatMessage = {
     generateVideoIdFound?: boolean;
     resultNonceFound?: boolean;
     videoUrlFound?: boolean;
+    videoStatus?: 'processing' | 'ready' | 'unavailable' | 'failed';
+    videoError?: string | null;
 };
 
 type OrionResponse = {
@@ -22,8 +24,18 @@ type OrionResponse = {
     generate_video_id: string | null;
     result_nonce: string | null;
     video_url: string | null;
+    video_status: 'processing' | 'ready' | 'unavailable';
     generate_nonce_found: boolean;
     generate_video_id_found: boolean;
+    result_nonce_found: boolean;
+    video_url_found: boolean;
+};
+
+type OrionVideoStatusResponse = {
+    generate_video_id: string;
+    result_nonce: string | null;
+    video_url: string | null;
+    video_status: 'processing' | 'ready';
     result_nonce_found: boolean;
     video_url_found: boolean;
 };
@@ -51,6 +63,70 @@ export function useOrionChat() {
             behavior: 'smooth',
         });
     }, [messages, isSending]);
+
+    async function waitForVideoResult(
+        messageId: string,
+        generateVideoId: string,
+        nonce: string,
+    ): Promise<void> {
+        try {
+            const response = await fetch(
+                status.url({
+                    query: {
+                        generate_video_id: generateVideoId,
+                        nonce,
+                    },
+                }),
+                {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error('The video is still processing or unavailable.');
+            }
+
+            const data = (await response.json()) as OrionVideoStatusResponse;
+
+            console.log('[Orion Chat] Video status payload', data);
+
+            setMessages((currentMessages) =>
+                currentMessages.map((chatMessage) =>
+                    chatMessage.id === messageId
+                        ? {
+                              ...chatMessage,
+                              resultNonce: data.result_nonce,
+                              videoUrl: data.video_url,
+                              resultNonceFound: data.result_nonce_found,
+                              videoUrlFound: data.video_url_found,
+                              videoStatus: data.video_status,
+                              videoError: null,
+                          }
+                        : chatMessage,
+                ),
+            );
+        } catch (requestError) {
+            const fallbackMessage =
+                requestError instanceof Error
+                    ? requestError.message
+                    : 'The video is still processing or unavailable.';
+
+            setMessages((currentMessages) =>
+                currentMessages.map((chatMessage) =>
+                    chatMessage.id === messageId
+                        ? {
+                              ...chatMessage,
+                              videoStatus: 'failed',
+                              videoError: fallbackMessage,
+                          }
+                        : chatMessage,
+                ),
+            );
+        }
+    }
 
     async function sendMessage(nextMessage: string): Promise<void> {
         const trimmedMessage = nextMessage.trim();
@@ -106,6 +182,7 @@ export function useOrionChat() {
                 generateVideoId: data.generate_video_id,
             });
             console.log('[Orion Chat] Generating video url', {
+                videoStatus: data.video_status,
                 resultNonceFound: data.result_nonce_found,
                 resultNonce: data.result_nonce,
                 videoUrlFound: data.video_url_found,
@@ -113,10 +190,12 @@ export function useOrionChat() {
             });
 
             setConversationId(data.conversation_id);
+            const assistantMessageId = `assistant-${crypto.randomUUID()}`;
+
             setMessages((currentMessages) => [
                 ...currentMessages,
                 {
-                    id: `assistant-${crypto.randomUUID()}`,
+                    id: assistantMessageId,
                     role: 'assistant',
                     text: data.text,
                     veoNonce: data.veo_nonce,
@@ -127,8 +206,18 @@ export function useOrionChat() {
                     generateVideoIdFound: data.generate_video_id_found,
                     resultNonceFound: data.result_nonce_found,
                     videoUrlFound: data.video_url_found,
+                    videoStatus: data.video_status,
+                    videoError: null,
                 },
             ]);
+
+            if (data.video_status === 'processing' && data.generate_video_id && data.veo_nonce) {
+                void waitForVideoResult(
+                    assistantMessageId,
+                    data.generate_video_id,
+                    data.veo_nonce,
+                );
+            }
         } catch (requestError) {
             const fallbackMessage =
                 requestError instanceof Error

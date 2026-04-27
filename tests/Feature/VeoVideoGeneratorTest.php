@@ -180,7 +180,7 @@ test('veo video generator can extract a plain mp4 url response', function () {
     $videoUrl = app(VeoVideoGenerator::class)
         ->fetchVideoUrl('482653');
 
-    expect($videoUrl)->toBe('https://veoaifree.com/videos/uploads/video_482653_1777257471.mp4');
+    expect($videoUrl)->toBe('https://veoaifree.com/video/uploads/video_482653_1777257471.mp4');
 });
 
 test('veo video generator can reuse the same nonce for final video lookup', function () {

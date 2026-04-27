@@ -57,6 +57,11 @@ beforeEach(function () {
             'nonce' => null,
             'generate_video_id' => null,
         ]);
+
+        $mock->shouldReceive('fetchVideoUrlWithNonce')->andReturn([
+            'nonce' => null,
+            'video_url' => null,
+        ]);
     });
 });
 
@@ -75,6 +80,7 @@ test('guests can post to orion chat without starting a remembered conversation',
         ->assertJsonPath('veo_nonce', null)
         ->assertJsonPath('generate_video_id', null)
         ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('video_status', 'unavailable')
         ->assertJsonPath('generate_nonce_found', false)
         ->assertJsonPath('generate_video_id_found', false)
         ->assertJsonPath('result_nonce_found', false)
@@ -102,6 +108,7 @@ test('orion chat is excluded from csrf protection', function () {
         ->assertJsonPath('veo_nonce', null)
         ->assertJsonPath('generate_video_id', null)
         ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('video_status', 'unavailable')
         ->assertJsonPath('generate_nonce_found', false)
         ->assertJsonPath('generate_video_id_found', false)
         ->assertJsonPath('result_nonce_found', false)
@@ -152,6 +159,7 @@ test('authenticated users can start and continue an orion conversation', functio
         ->assertJsonPath('veo_nonce', null)
         ->assertJsonPath('generate_video_id', null)
         ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('video_status', 'unavailable')
         ->assertJsonPath('generate_nonce_found', false)
         ->assertJsonPath('generate_video_id_found', false)
         ->assertJsonPath('result_nonce_found', false)
@@ -178,6 +186,7 @@ test('authenticated users can start and continue an orion conversation', functio
         ->assertJsonPath('veo_nonce', null)
         ->assertJsonPath('generate_video_id', null)
         ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('video_status', 'unavailable')
         ->assertJsonPath('generate_nonce_found', false)
         ->assertJsonPath('generate_video_id_found', false)
         ->assertJsonPath('result_nonce_found', false)
@@ -192,7 +201,7 @@ test('authenticated users can start and continue an orion conversation', functio
     Orion::assertPrompted('What about tomorrow?');
 });
 
-test('orion chat can return a generated video id and video url', function () {
+test('orion chat can return a generated video id and mark the video as processing', function () {
     Orion::fake([
         'A cinematic vertical video of a rainy Manila street at night with neon reflections and slow camera movement.',
     ])->preventStrayPrompts();
@@ -206,13 +215,7 @@ test('orion chat can return a generated video id and video url', function () {
                 'generate_video_id' => 'video_job_123',
             ]);
 
-        $mock->shouldReceive('fetchVideoUrlWithNonce')
-            ->once()
-            ->with('video_job_123', 'nonce_abc123')
-            ->andReturn([
-                'nonce' => 'nonce_abc123',
-                'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
-            ]);
+        $mock->shouldReceive('fetchVideoUrlWithNonce')->never();
     });
 
     $response = $this->postJson(route('orion.chat.store'), [
@@ -222,10 +225,61 @@ test('orion chat can return a generated video id and video url', function () {
     $response->assertOk()
         ->assertJsonPath('veo_nonce', 'nonce_abc123')
         ->assertJsonPath('generate_video_id', 'video_job_123')
-        ->assertJsonPath('result_nonce', 'nonce_abc123')
+        ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('video_status', 'processing')
         ->assertJsonPath('generate_nonce_found', true)
         ->assertJsonPath('generate_video_id_found', true)
+        ->assertJsonPath('result_nonce_found', false)
+        ->assertJsonPath('video_url_found', false)
+        ->assertJsonPath('video_url', null);
+});
+
+test('orion video status can return a ready video url', function () {
+    $this->mock(VeoVideoGenerator::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('fetchVideoUrlWithNonce')
+            ->once()
+            ->with('video_job_123', 'nonce_abc123')
+            ->andReturn([
+                'nonce' => 'nonce_abc123',
+                'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
+            ]);
+    });
+
+    $response = $this->getJson(route('orion.chat.status', [
+        'generate_video_id' => 'video_job_123',
+        'nonce' => 'nonce_abc123',
+    ]));
+
+    $response->assertOk()
+        ->assertJsonPath('generate_video_id', 'video_job_123')
+        ->assertJsonPath('result_nonce', 'nonce_abc123')
+        ->assertJsonPath('video_status', 'ready')
         ->assertJsonPath('result_nonce_found', true)
         ->assertJsonPath('video_url_found', true)
         ->assertJsonPath('video_url', 'https://cdn.example.com/generated/final-video.mp4');
+});
+
+test('orion video status remains processing when no video url is ready yet', function () {
+    $this->mock(VeoVideoGenerator::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('fetchVideoUrlWithNonce')
+            ->once()
+            ->with('video_job_123', 'nonce_abc123')
+            ->andReturn([
+                'nonce' => 'nonce_abc123',
+                'video_url' => null,
+            ]);
+    });
+
+    $response = $this->getJson(route('orion.chat.status', [
+        'generate_video_id' => 'video_job_123',
+        'nonce' => 'nonce_abc123',
+    ]));
+
+    $response->assertOk()
+        ->assertJsonPath('generate_video_id', 'video_job_123')
+        ->assertJsonPath('result_nonce', 'nonce_abc123')
+        ->assertJsonPath('video_status', 'processing')
+        ->assertJsonPath('result_nonce_found', true)
+        ->assertJsonPath('video_url_found', false)
+        ->assertJsonPath('video_url', null);
 });

@@ -183,22 +183,31 @@ class VeoVideoGenerator
         $trimmedBody = trim($body);
 
         if (preg_match('/https?:\/\/[^\s"\']+\.mp4/i', $trimmedBody, $matches) === 1) {
-            return $matches[0];
+            return $this->normalizeVideoUrl($matches[0]);
         }
 
         if (Str::isJson($trimmedBody)) {
             /** @var mixed $data */
             $data = json_decode($trimmedBody, true);
 
-            return data_get($data, 'data.video_url')
+            $videoUrl = data_get($data, 'data.video_url')
                 ?? data_get($data, 'video_url')
                 ?? data_get($data, 'data.url')
                 ?? data_get($data, 'url')
                 ?? data_get($data, 'data.videoUrl')
                 ?? data_get($data, 'videoUrl');
+
+            return is_string($videoUrl)
+                ? $this->normalizeVideoUrl($videoUrl)
+                : null;
         }
 
         return null;
+    }
+
+    private function normalizeVideoUrl(string $videoUrl): string
+    {
+        return str_replace('/videos/uploads/', '/video/uploads/', $videoUrl);
     }
 
     private function extractNumericIdFromText(string $text): ?string
