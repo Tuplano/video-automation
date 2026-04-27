@@ -75,7 +75,85 @@ export default function OrionChatPanel({
                                 : 'max-w-[85%] rounded-lg border border-white/10 bg-[#1a1a1a] px-4 py-3 text-sm leading-6 text-[#f5f2ea]'
                         }
                     >
-                        {chatMessage.text}
+                        <p>{chatMessage.text}</p>
+                        {chatMessage.role === 'assistant' &&
+                        (chatMessage.veoNonce ||
+                            chatMessage.generateVideoId ||
+                            chatMessage.resultNonce ||
+                            chatMessage.generateNonceFound !== undefined ||
+                            chatMessage.generateVideoIdFound !== undefined ||
+                            chatMessage.resultNonceFound !== undefined ||
+                            chatMessage.videoUrlFound !== undefined ||
+                            chatMessage.videoUrl) ? (
+                            <div className="mt-3 space-y-1 border-t border-white/10 pt-3 text-xs text-white/55">
+                                <p>
+                                    Generate nonce:{' '}
+                                    <span className="text-white/80">
+                                        {chatMessage.generateNonceFound
+                                            ? 'found'
+                                            : 'missing'}
+                                    </span>
+                                </p>
+                                {chatMessage.veoNonce ? (
+                                    <p>
+                                        Nonce:{' '}
+                                        <span className="text-white/80">
+                                            {chatMessage.veoNonce}
+                                        </span>
+                                    </p>
+                                ) : null}
+                                <p>
+                                    Video job ID:{' '}
+                                    <span className="text-white/80">
+                                        {chatMessage.generateVideoIdFound
+                                            ? 'generated'
+                                            : 'missing'}
+                                    </span>
+                                </p>
+                                {chatMessage.generateVideoId ? (
+                                    <p>
+                                        Video job ID:{' '}
+                                        <span className="text-white/80">
+                                            {chatMessage.generateVideoId}
+                                        </span>
+                                    </p>
+                                ) : null}
+                                <p>
+                                    Result nonce:{' '}
+                                    <span className="text-white/80">
+                                        {chatMessage.resultNonceFound
+                                            ? 'found'
+                                            : 'missing'}
+                                    </span>
+                                </p>
+                                {chatMessage.resultNonce ? (
+                                    <p>
+                                        Result nonce:{' '}
+                                        <span className="text-white/80">
+                                            {chatMessage.resultNonce}
+                                        </span>
+                                    </p>
+                                ) : null}
+                                <p>
+                                    Video URL:{' '}
+                                    <span className="text-white/80">
+                                        {chatMessage.videoUrlFound
+                                            ? 'ready'
+                                            : 'missing'}
+                                    </span>
+                                </p>
+                                {chatMessage.videoUrl ? (
+                                    <a
+                                        href={chatMessage.videoUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex text-[#f97316] transition hover:text-[#fb8b3d]"
+                                    >
+                                        View generated video
+                                    </a>
+                                ) : null}
+                            </div>
+                        ) : null}
                     </div>
                 ))}
 

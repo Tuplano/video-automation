@@ -2,11 +2,13 @@
 
 use App\Ai\Agents\Orion;
 use App\Models\User;
+use App\Services\Veo\VeoVideoGenerator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Mockery\MockInterface;
 
 beforeEach(function () {
     if (! Schema::hasTable('users')) {
@@ -49,6 +51,13 @@ beforeEach(function () {
             $table->timestamps();
         });
     }
+
+    $this->mock(VeoVideoGenerator::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('generateVideoIdResult')->andReturn([
+            'nonce' => null,
+            'generate_video_id' => null,
+        ]);
+    });
 });
 
 test('guests can post to orion chat without starting a remembered conversation', function () {
@@ -62,7 +71,15 @@ test('guests can post to orion chat without starting a remembered conversation',
 
     $response->assertOk()
         ->assertJsonPath('text', 'Manila is hot and sunny today.')
-        ->assertJsonPath('conversation_id', null);
+        ->assertJsonPath('conversation_id', null)
+        ->assertJsonPath('veo_nonce', null)
+        ->assertJsonPath('generate_video_id', null)
+        ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('generate_nonce_found', false)
+        ->assertJsonPath('generate_video_id_found', false)
+        ->assertJsonPath('result_nonce_found', false)
+        ->assertJsonPath('video_url_found', false)
+        ->assertJsonPath('video_url', null);
 
     expect(DB::table('agent_conversations')->count())->toBe(0);
     expect(DB::table('agent_conversation_messages')->count())->toBe(0);
@@ -81,7 +98,15 @@ test('orion chat is excluded from csrf protection', function () {
 
     $response->assertOk()
         ->assertJsonPath('text', 'Cebu is breezy today.')
-        ->assertJsonPath('conversation_id', null);
+        ->assertJsonPath('conversation_id', null)
+        ->assertJsonPath('veo_nonce', null)
+        ->assertJsonPath('generate_video_id', null)
+        ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('generate_nonce_found', false)
+        ->assertJsonPath('generate_video_id_found', false)
+        ->assertJsonPath('result_nonce_found', false)
+        ->assertJsonPath('video_url_found', false)
+        ->assertJsonPath('video_url', null);
 });
 
 test('orion chat is rate limited for guests', function () {
@@ -123,7 +148,15 @@ test('authenticated users can start and continue an orion conversation', functio
     ]);
 
     $firstResponse->assertOk()
-        ->assertJsonPath('text', 'Manila is warm and cloudy today.');
+        ->assertJsonPath('text', 'Manila is warm and cloudy today.')
+        ->assertJsonPath('veo_nonce', null)
+        ->assertJsonPath('generate_video_id', null)
+        ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('generate_nonce_found', false)
+        ->assertJsonPath('generate_video_id_found', false)
+        ->assertJsonPath('result_nonce_found', false)
+        ->assertJsonPath('video_url_found', false)
+        ->assertJsonPath('video_url', null);
 
     $conversationId = $firstResponse->json('conversation_id');
 
@@ -141,7 +174,15 @@ test('authenticated users can start and continue an orion conversation', functio
 
     $secondResponse->assertOk()
         ->assertJsonPath('text', 'Tomorrow should be a little wetter, so bring an umbrella.')
-        ->assertJsonPath('conversation_id', $conversationId);
+        ->assertJsonPath('conversation_id', $conversationId)
+        ->assertJsonPath('veo_nonce', null)
+        ->assertJsonPath('generate_video_id', null)
+        ->assertJsonPath('result_nonce', null)
+        ->assertJsonPath('generate_nonce_found', false)
+        ->assertJsonPath('generate_video_id_found', false)
+        ->assertJsonPath('result_nonce_found', false)
+        ->assertJsonPath('video_url_found', false)
+        ->assertJsonPath('video_url', null);
 
     expect(DB::table('agent_conversation_messages')
         ->where('conversation_id', $conversationId)
@@ -149,4 +190,42 @@ test('authenticated users can start and continue an orion conversation', functio
 
     Orion::assertPrompted('What is the weather in Manila today?');
     Orion::assertPrompted('What about tomorrow?');
+});
+
+test('orion chat can return a generated video id and video url', function () {
+    Orion::fake([
+        'A cinematic vertical video of a rainy Manila street at night with neon reflections and slow camera movement.',
+    ])->preventStrayPrompts();
+
+    $this->mock(VeoVideoGenerator::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('generateVideoIdResult')
+            ->once()
+            ->with('A cinematic vertical video of a rainy Manila street at night with neon reflections and slow camera movement.')
+            ->andReturn([
+                'nonce' => 'nonce_abc123',
+                'generate_video_id' => 'video_job_123',
+            ]);
+
+        $mock->shouldReceive('fetchVideoUrlWithNonce')
+            ->once()
+            ->with('video_job_123', 'nonce_abc123')
+            ->andReturn([
+                'nonce' => 'nonce_abc123',
+                'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
+            ]);
+    });
+
+    $response = $this->postJson(route('orion.chat.store'), [
+        'message' => 'Generate a rainy Manila night drive video prompt.',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('veo_nonce', 'nonce_abc123')
+        ->assertJsonPath('generate_video_id', 'video_job_123')
+        ->assertJsonPath('result_nonce', 'nonce_abc123')
+        ->assertJsonPath('generate_nonce_found', true)
+        ->assertJsonPath('generate_video_id_found', true)
+        ->assertJsonPath('result_nonce_found', true)
+        ->assertJsonPath('video_url_found', true)
+        ->assertJsonPath('video_url', 'https://cdn.example.com/generated/final-video.mp4');
 });
