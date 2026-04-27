@@ -6,26 +6,26 @@ type OrionLandingContentProps = {
 };
 
 const promptSuggestions = [
-    'What is the weather in Manila today?',
-    'Will it rain in Cebu this afternoon?',
-    'What should I wear in Baguio tomorrow morning?',
+    'Generate a free cinematic drone flyover of downtown Tokyo at blue hour with reflective streets and slow parallax.',
+    'Create a free vertical product teaser for a matte black sneaker with macro shots, soft smoke, and hard rim lighting.',
+    'Make a free surreal desert sequence with a lone traveler, floating fabric, and a slow push-in at golden hour.',
 ];
 
 const featureCards = [
     {
-        title: 'Guest-ready',
+        title: 'Free to start',
         description:
-            'Visitors can ask about rain, heat, wind, or travel conditions immediately without creating an account first.',
+            'Visitors can start generating AI videos immediately without paying, signing up, or learning a complicated workflow.',
     },
     {
-        title: 'Operationally simple',
+        title: 'Digital product',
         description:
-            'One landing page and one assistant surface keep weather questions easy to ask, answer, and maintain over time.',
+            'One focused digital product keeps ideation, prompting, previewing, and final playback in a single streamlined experience.',
     },
     {
-        title: 'Ready to evolve',
+        title: 'Made for creators',
         description:
-            'Forecast prompts, seasonal guidance, travel tips, and local weather use cases can grow without rebuilding the whole experience.',
+            'Style presets, shot variations, creator workflows, and branded directions can grow as the product expands beyond its free entry point.',
     },
 ];
 
@@ -40,17 +40,16 @@ export default function OrionLandingContent({
                     <div className="flex flex-col justify-end gap-6 py-8 lg:py-12">
                         <div className="space-y-4">
                             <p className="text-xs font-medium tracking-[0.28em] text-[#f97316] uppercase">
-                                Public weather assistant
+                                Free AI video generator
                             </p>
                             <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-balance lg:text-6xl">
-                                Ask about the weather and get useful guidance right away.
+                                Generate videos for free from a simple prompt, then refine the result in seconds.
                             </h1>
                             <p className="max-w-xl text-base leading-7 text-white/62 lg:text-lg">
-                                Orion helps people check conditions, plan what
-                                to wear, prepare for rain, and make small daily
-                                decisions with less guesswork. The page keeps
-                                that promise front and center from the first
-                                screen.
+                                Orion is a free digital product for creators,
+                                founders, and marketers who want fast AI video
+                                generation without expensive software, complex
+                                editing timelines, or a steep learning curve.
                             </p>
                         </div>
 
@@ -63,9 +62,9 @@ export default function OrionLandingContent({
                                 Start with a prompt
                             </button>
                             <p className="max-w-sm text-sm leading-6 text-white/45">
-                                Built for everyday forecast checks, commute
-                                planning, weekend trips, and quick questions
-                                about what the weather means in practice.
+                                Built for free concept videos, product teasers,
+                                social clips, mood reels, and quick visual
+                                experiments before you commit to production.
                             </p>
                         </div>
                     </div>
@@ -81,10 +80,10 @@ export default function OrionLandingContent({
                         <div className="absolute bottom-[24%] right-[17%] h-3 w-28 rounded-full bg-[#d9b28f]/40 blur-sm" />
                         <div className="absolute bottom-6 left-6 max-w-sm">
                             <p className="text-xs font-medium tracking-[0.26em] text-white/45 uppercase">
-                                Live weather help
+                                Free generation preview
                             </p>
                             <p className="mt-3 text-2xl font-medium leading-tight text-white">
-                                One place to ask about today, tonight, or the trip ahead.
+                                One place to write the prompt, trigger the render, and watch the video come back.
                             </p>
                         </div>
                     </div>
@@ -95,13 +94,13 @@ export default function OrionLandingContent({
                 <div className="mx-auto grid max-w-7xl gap-6 px-6 py-10 lg:min-h-[36rem] lg:grid-cols-4 lg:content-center lg:px-10">
                     <div className="lg:col-span-1">
                         <p className="text-xs font-medium tracking-[0.28em] text-[#f97316] uppercase">
-                            Designed for practical use
+                            Designed for practical creation
                         </p>
                         <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">
-                            Each section supports a real weather use case:
-                            explain what Orion answers, show where it helps,
-                            and lead the visitor toward trying a forecast
-                            question themselves.
+                            Each section supports a real use case: explain
+                            what Orion generates for free, show who it helps,
+                            and lead the visitor toward trying their first
+                            prompt with confidence.
                         </p>
                     </div>
                     {featureCards.map((card) => (
@@ -135,22 +134,22 @@ export default function OrionLandingContent({
                                 Structure
                             </p>
                             <h2 className="mt-3 max-w-lg text-3xl font-semibold leading-tight text-white lg:text-5xl">
-                                A weather assistant landing page that explains its value quickly.
+                                A free video generation product page that explains its value in seconds.
                             </h2>
                             <p className="mt-4 max-w-xl text-sm leading-7 text-white/58 lg:text-base">
-                                Instead of generic filler, the page focuses on
-                                the moments people actually care about:
-                                checking rain before leaving, planning for heat
-                                later today, and deciding what to pack for the
-                                next stop.
+                                Instead of generic AI filler, the page focuses
+                                on what creators actually care about: getting
+                                from idea to motion quickly, understanding that
+                                the tool is free, and seeing the result without
+                                unnecessary friction.
                             </p>
                         </div>
 
                         <div className="grid gap-4">
                             {[
-                                'A clear hero that tells visitors they can ask real weather questions immediately',
-                                'Support sections that connect Orion to travel, daily planning, and changing conditions',
-                                'A content system that stays easy to scan even as more forecast use cases are added',
+                                'A clear hero that tells visitors they can generate AI videos for free right away',
+                                'Support sections that connect Orion to ads, storytelling, product launches, and social content',
+                                'A content system that stays easy to scan as more templates and free generation workflows are added',
                             ].map((item) => (
                                 <div
                                     key={item}
@@ -174,13 +173,13 @@ export default function OrionLandingContent({
                             Main conversion block
                         </p>
                         <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight text-white lg:text-5xl">
-                            Let people try a weather question before they commit to anything else.
+                            Let people try a free video prompt before they commit to anything else.
                         </h2>
                         <p className="mt-4 max-w-2xl text-sm leading-7 text-white/58 lg:text-base">
-                            The quickest way to understand Orion is to ask it
-                            something real: whether it will rain later, what
-                            conditions feel like in another city, or how to
-                            prepare for the morning ahead.
+                            The quickest way to understand Orion is to try it:
+                            write a real scene, generate the first pass for
+                            free, and see how quickly an idea becomes a usable
+                            video concept.
                         </p>
                     </div>
 
@@ -195,20 +194,21 @@ export default function OrionLandingContent({
                             Outcomes
                         </p>
                         <h2 className="mt-3 max-w-lg text-3xl font-semibold leading-tight text-white lg:text-5xl">
-                            What improves when the weather assistant is easier to understand at a glance.
+                            What improves when a free video generator is easier to understand at a glance.
                         </h2>
                         <p className="mt-4 max-w-md text-sm leading-7 text-white/58 lg:text-base">
-                            Better pacing builds confidence. Visitors see what
-                            Orion helps with, when to use it, and why asking a
-                            quick weather question feels worth their time.
+                            Better pacing builds confidence. Visitors instantly
+                            see that Orion is free, what kinds of videos it
+                            generates, and why writing a quick prompt is worth
+                            their time.
                         </p>
                     </div>
 
                     <div className="grid gap-6 sm:grid-cols-3">
                         {[
-                            ['2-3x', 'Clearer encouragement to ask about rain, temperature, and travel conditions right away'],
-                            ['6-12 weeks', 'Enough room to expand into alerts, location-specific guidance, and seasonal weather content'],
-                            ['90%+', 'Of the structure needed for a public weather assistant page that already feels launch-ready'],
+                            ['2-3x', 'Clearer encouragement to try free cinematic prompts, product shots, and concept videos right away'],
+                            ['6-12 weeks', 'Enough room to expand into templates, aspect ratios, shot controls, and creator-friendly premium upgrades later'],
+                            ['90%+', 'Of the structure needed for a public-facing free AI video product page that already feels launch-ready'],
                         ].map(([value, description]) => (
                             <div
                                 key={value}
@@ -232,20 +232,20 @@ export default function OrionLandingContent({
                             Testimonials
                         </p>
                         <h2 className="mt-3 max-w-2xl text-3xl font-semibold text-white lg:text-5xl">
-                            The page now feels closer to a weather product people would actually return to.
+                            The page now feels closer to a free video product creators would actually return to.
                         </h2>
                         <p className="mt-4 max-w-2xl text-sm leading-7 text-white/58 lg:text-base">
                             The copy, structure, and prompt flow now support a
-                            more believable weather experience instead of a
-                            generic AI page with weather layered on top.
+                            more believable free-product experience instead of
+                            a generic AI page with video layered on top.
                         </p>
                     </div>
 
                     <div className="mt-8 grid gap-5 lg:grid-cols-3">
                         {[
-                            'It feels like a weather service now, not just a chat box with a different label.',
-                            'The sample prompts make it obvious that Orion is for rain checks, planning, and local conditions.',
-                            'The page explains why someone would use a weather assistant before asking them to interact with it.',
+                            'It feels like a real free video generator now, not just a chat box with a different label.',
+                            'The sample prompts make it obvious that Orion is for scenes, products, motion, and visual direction.',
+                            'The page explains why someone would try a free video generator before asking them to interact with it.',
                         ].map((quote, index) => (
                             <div
                                 key={quote}

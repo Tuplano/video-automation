@@ -52,9 +52,9 @@ export default function OrionChatPanel({
         >
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
                 <div>
-                    <p className="text-sm font-medium">Chat</p>
+                    <p className="text-sm font-medium">Prompt Console</p>
                     <p className="text-sm text-white/55">
-                        Replies appear here as soon as Orion answers.
+                        Write a scene, refine the direction, and Orion will turn it into a free video generation request.
                     </p>
                 </div>
                 <div className="text-sm text-white/45">
@@ -66,7 +66,7 @@ export default function OrionChatPanel({
                 ref={transcriptRef}
                 className="flex-1 space-y-4 overflow-y-auto px-5 py-5"
             >
-                {messages.map((chatMessage) => (
+                {messages.map((chatMessage: ChatMessage) => (
                     <div
                         key={chatMessage.id}
                         className={
@@ -77,14 +77,9 @@ export default function OrionChatPanel({
                     >
                         <p>{chatMessage.text}</p>
                         {chatMessage.role === 'assistant' &&
-                        (chatMessage.veoNonce ||
-                            chatMessage.generateVideoId ||
-                            chatMessage.resultNonce ||
-                            chatMessage.generateNonceFound !== undefined ||
-                            chatMessage.generateVideoIdFound !== undefined ||
-                            chatMessage.resultNonceFound !== undefined ||
-                            chatMessage.videoUrlFound !== undefined ||
-                            chatMessage.videoUrl) ? (
+                        (chatMessage.videoStatus === 'processing' ||
+                            chatMessage.videoStatus === 'failed' ||
+                            Boolean(chatMessage.videoUrl)) ? (
                             <div className="mt-3 space-y-1 border-t border-white/10 pt-3 text-xs text-white/55">
                                 {chatMessage.videoStatus === 'processing' ? (
                                     <div className="mb-3 overflow-hidden rounded-lg border border-white/10 bg-[#101010]">
@@ -107,66 +102,10 @@ export default function OrionChatPanel({
                                             </div>
                                         </div>
                                         <div className="border-t border-white/10 px-3 py-2 text-xs text-white/60">
-                                            Orion will attach the finished video here once VEO returns the URL.
+                                            Orion will attach the finished video here as soon as the free render is ready.
                                         </div>
                                     </div>
                                 ) : null}
-                                <p>
-                                    Generate nonce:{' '}
-                                    <span className="text-white/80">
-                                        {chatMessage.generateNonceFound
-                                            ? 'found'
-                                            : 'missing'}
-                                    </span>
-                                </p>
-                                {chatMessage.veoNonce ? (
-                                    <p>
-                                        Nonce:{' '}
-                                        <span className="text-white/80">
-                                            {chatMessage.veoNonce}
-                                        </span>
-                                    </p>
-                                ) : null}
-                                <p>
-                                    Video job ID:{' '}
-                                    <span className="text-white/80">
-                                        {chatMessage.generateVideoIdFound
-                                            ? 'generated'
-                                            : 'missing'}
-                                    </span>
-                                </p>
-                                {chatMessage.generateVideoId ? (
-                                    <p>
-                                        Video job ID:{' '}
-                                        <span className="text-white/80">
-                                            {chatMessage.generateVideoId}
-                                        </span>
-                                    </p>
-                                ) : null}
-                                <p>
-                                    Result nonce:{' '}
-                                    <span className="text-white/80">
-                                        {chatMessage.resultNonceFound
-                                            ? 'found'
-                                            : 'missing'}
-                                    </span>
-                                </p>
-                                {chatMessage.resultNonce ? (
-                                    <p>
-                                        Result nonce:{' '}
-                                        <span className="text-white/80">
-                                            {chatMessage.resultNonce}
-                                        </span>
-                                    </p>
-                                ) : null}
-                                <p>
-                                    Video URL:{' '}
-                                    <span className="text-white/80">
-                                        {chatMessage.videoUrlFound
-                                            ? 'ready'
-                                            : 'missing'}
-                                    </span>
-                                </p>
                                 {chatMessage.videoStatus === 'failed' && chatMessage.videoError ? (
                                     <p className="text-amber-300">
                                         {chatMessage.videoError}
@@ -199,7 +138,7 @@ export default function OrionChatPanel({
                 {isSending && (
                     <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-[#1a1a1a] px-4 py-3 text-sm text-white/65">
                         <Spinner className="size-4" />
-                        Orion is thinking
+                        Orion is building your next shot
                     </div>
                 )}
             </div>
@@ -210,7 +149,7 @@ export default function OrionChatPanel({
                         htmlFor="orion-message"
                         className="block text-sm font-medium"
                     >
-                        Message
+                        Free video prompt
                     </label>
 
                     <textarea
@@ -218,7 +157,7 @@ export default function OrionChatPanel({
                         value={message}
                         onChange={(event) => onMessageChange(event.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask about a city, forecast, or what to wear."
+                        placeholder="Describe the scene, camera movement, mood, style, and format you want to generate for free."
                         className="min-h-28 w-full resize-none rounded-md border border-white/10 bg-[#0b0b0b] px-3 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/35 focus:border-[#f97316]"
                         disabled={isSending}
                     />
@@ -227,7 +166,7 @@ export default function OrionChatPanel({
 
                     <div className="flex items-center justify-between gap-3">
                         <p className="text-sm text-white/55">
-                            Press Enter to send. Use Shift+Enter for a new line.
+                            Press Enter to generate. Use Shift+Enter for a new line.
                         </p>
 
                         <Button
@@ -236,7 +175,7 @@ export default function OrionChatPanel({
                             className="min-w-28 bg-[#f97316] text-black hover:bg-[#fb8b3d]"
                         >
                             {isSending && <Spinner />}
-                            Send
+                            Generate
                         </Button>
                     </div>
                 </form>

@@ -44,7 +44,7 @@ const initialMessages: ChatMessage[] = [
     {
         id: 'assistant-intro',
         role: 'assistant',
-        text: 'Ask for a city and I will give you a weather-style answer. Guest requests are open, so each message is handled on its own.',
+        text: 'Describe the video you want to generate for free and I will help shape it into a stronger scene. Guest requests are open, so each message is handled on its own.',
     },
 ];
 

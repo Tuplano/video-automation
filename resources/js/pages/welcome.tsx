@@ -9,7 +9,7 @@ export default function Welcome() {
 
     return (
         <>
-            <Head title="Orion" />
+            <Head title="Orion Free AI Video Generator" />
             <OrionLandingContent
                 chatPanel={
                     <OrionChatPanel

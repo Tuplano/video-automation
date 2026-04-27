@@ -24,7 +24,7 @@ export default function PublicLayout({
                                 Orion
                             </p>
                             <p className="text-xs text-white/50">
-                                Public weather assistant
+                                Free AI video generator
                             </p>
                         </div>
                     </Link>
@@ -49,9 +49,9 @@ export default function PublicLayout({
                     <div className="max-w-sm">
                         <p className="text-sm font-medium">Orion</p>
                         <p className="mt-3 text-sm leading-6 text-white/55">
-                            A public weather chat designed for fast questions,
-                            direct answers, and a calmer interface than the
-                            usual demo page.
+                            A free digital product for generating AI videos
+                            from prompts, fast concepts, and lightweight
+                            creative direction without the usual friction.
                         </p>
                     </div>
 
