@@ -3,7 +3,9 @@
 use App\Ai\Agents\Orion;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function () {
@@ -49,12 +51,62 @@ beforeEach(function () {
     }
 });
 
-test('guests are redirected when posting to orion chat', function () {
+test('guests can post to orion chat without starting a remembered conversation', function () {
+    Orion::fake([
+        'Manila is hot and sunny today.',
+    ])->preventStrayPrompts();
+
     $response = $this->postJson(route('orion.chat.store'), [
         'message' => 'What is the weather in Manila?',
     ]);
 
-    $response->assertUnauthorized();
+    $response->assertOk()
+        ->assertJsonPath('text', 'Manila is hot and sunny today.')
+        ->assertJsonPath('conversation_id', null);
+
+    expect(DB::table('agent_conversations')->count())->toBe(0);
+    expect(DB::table('agent_conversation_messages')->count())->toBe(0);
+
+    Orion::assertPrompted('What is the weather in Manila?');
+});
+
+test('orion chat is excluded from csrf protection', function () {
+    Orion::fake([
+        'Cebu is breezy today.',
+    ])->preventStrayPrompts();
+
+    $response = $this->withMiddleware()->postJson(route('orion.chat.store'), [
+        'message' => 'What is the weather in Cebu?',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('text', 'Cebu is breezy today.')
+        ->assertJsonPath('conversation_id', null);
+});
+
+test('orion chat is rate limited for guests', function () {
+    Orion::fake(array_fill(0, 20, 'Davao is humid today.'))->preventStrayPrompts();
+
+    Cache::flush();
+    RateLimiter::clear('laravel_cache:'.sha1('POST|orion/chat|127.0.0.1'));
+
+    foreach (range(1, 20) as $attempt) {
+        $response = $this->withMiddleware()
+            ->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+            ->postJson(route('orion.chat.store'), [
+                'message' => "Weather request {$attempt}",
+            ]);
+
+        $response->assertOk();
+    }
+
+    $response = $this->withMiddleware()
+        ->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+        ->postJson(route('orion.chat.store'), [
+            'message' => 'Weather request 21',
+        ]);
+
+    $response->assertStatus(429);
 });
 
 test('authenticated users can start and continue an orion conversation', function () {

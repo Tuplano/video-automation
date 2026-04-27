@@ -15,12 +15,15 @@ class OrionChatController extends Controller
     {
         $validated = $request->validated();
         $agent = new Orion;
+        $user = $request->user();
 
-        $response = filled($validated['conversation_id'] ?? null)
-            ? $agent->continue($validated['conversation_id'], as: $request->user())
-                ->prompt($validated['message'])
-            : $agent->forUser($request->user())
-                ->prompt($validated['message']);
+        $response = match (true) {
+            filled($validated['conversation_id'] ?? null) && $user !== null => $agent->continue($validated['conversation_id'], as: $user)
+                ->prompt($validated['message']),
+            $user !== null => $agent->forUser($user)
+                ->prompt($validated['message']),
+            default => $agent->prompt($validated['message']),
+        };
 
         return response()->json([
             'text' => $response->text,

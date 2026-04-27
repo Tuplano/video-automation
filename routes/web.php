@@ -8,9 +8,12 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+Route::post('orion/chat', [OrionChatController::class, 'store'])
+    ->middleware('throttle:20,1')
+    ->name('orion.chat.store');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
-    Route::post('orion/chat', [OrionChatController::class, 'store'])->name('orion.chat.store');
 });
 
 require __DIR__.'/settings.php';
