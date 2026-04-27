@@ -2,11 +2,8 @@
 
 use App\Http\Controllers\OrionChatController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::inertia('/', 'welcome')->name('home');
 
 Route::post('orion/chat', [OrionChatController::class, 'store'])
     ->middleware('throttle:20,1')
