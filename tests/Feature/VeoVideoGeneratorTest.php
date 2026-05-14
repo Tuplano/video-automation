@@ -7,6 +7,10 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
 
+beforeEach(function () {
+    setVeoVideoGeneratorTestConfig();
+});
+
 test('veo video generator can create a generate video id', function () {
     Http::preventStrayRequests();
 
@@ -30,14 +34,30 @@ test('veo video generator can create a generate video id', function () {
 
     Http::assertSent(function (Request $request): bool {
         $body = $request->body();
+        $headers = veoTestHeaders(includeAjaxHeaders: true);
+        $videoGeneratorUrl = (string) config('services.veo.video_generator_url');
 
-        return $request->url() === 'https://veoaifree.com/wp-admin/admin-ajax.php'
+        return $request->url() === $videoGeneratorUrl
             && $request->method() === 'POST'
-            && $request->hasHeader('User-Agent', 'Mozilla/5.0')
-            && $request->hasHeader('Accept', 'application/json, text/plain, */*')
-            && $request->hasHeader('X-Requested-With', 'XMLHttpRequest')
-            && $request->hasHeader('Origin', 'https://veoaifree.com')
-            && $request->hasHeader('Referer', 'https://veoaifree.com/veo-video-generator/')
+            && $request->hasHeader('Accept', $headers['accept'])
+            && $request->hasHeader('Accept-Encoding', $headers['accept_encoding'])
+            && $request->hasHeader('Accept-Language', $headers['accept_language'])
+            && $request->hasHeader('Cache-Control', $headers['cache_control'])
+            && $request->hasHeader('Cookie', $headers['cookie'])
+            && $request->hasHeader('Priority', $headers['priority'])
+            && $request->hasHeader('Referer', $headers['referer'])
+            && $request->hasHeader('Sec-CH-UA', $headers['sec_ch_ua'])
+            && $request->hasHeader('Sec-CH-UA-Mobile', $headers['sec_ch_ua_mobile'])
+            && $request->hasHeader('Sec-CH-UA-Platform', $headers['sec_ch_ua_platform'])
+            && $request->hasHeader('Sec-Fetch-Dest', $headers['sec_fetch_dest'])
+            && $request->hasHeader('Sec-Fetch-Mode', $headers['sec_fetch_mode'])
+            && $request->hasHeader('Sec-Fetch-Site', $headers['sec_fetch_site'])
+            && $request->hasHeader('Sec-Fetch-User', $headers['sec_fetch_user'])
+            && $request->hasHeader('Sec-GPC', $headers['sec_gpc'])
+            && $request->hasHeader('Upgrade-Insecure-Requests', $headers['upgrade_insecure_requests'])
+            && $request->hasHeader('User-Agent', $headers['user_agent'])
+            && $request->hasHeader('X-Requested-With', $headers['x_requested_with'])
+            && $request->hasHeader('Origin', $headers['origin'])
             && str_contains($request->header('Content-Type')[0] ?? '', 'multipart/form-data')
             && str_contains($body, 'name="action"')
             && str_contains($body, 'veo_video_generator')
@@ -145,12 +165,14 @@ test('veo video generator can fetch a final video url', function () {
 
     Http::assertSent(function (Request $request): bool {
         $body = $request->body();
+        $videoGeneratorUrl = (string) config('services.veo.video_generator_url');
 
-        return $request->url() === 'https://veoaifree.com/wp-admin/admin-ajax.php'
+        return $request->url() === $videoGeneratorUrl
             && $request->method() === 'POST'
+            && $request->hasHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8')
             && $request->hasHeader('X-Requested-With', 'XMLHttpRequest')
             && $request->hasHeader('Origin', 'https://veoaifree.com')
-            && $request->hasHeader('Referer', 'https://veoaifree.com/veo-video-generator/')
+            && $request->hasHeader('Referer', 'https://veoaifree.com/')
             && str_contains($request->header('Content-Type')[0] ?? '', 'multipart/form-data')
             && str_contains($body, 'name="action"')
             && str_contains($body, 'veo_video_generator')
@@ -205,12 +227,14 @@ test('veo video generator can reuse the same nonce for final video lookup', func
 
     Http::assertSent(function (Request $request): bool {
         $body = $request->body();
+        $videoGeneratorUrl = (string) config('services.veo.video_generator_url');
 
-        return $request->url() === 'https://veoaifree.com/wp-admin/admin-ajax.php'
+        return $request->url() === $videoGeneratorUrl
             && $request->method() === 'POST'
+            && $request->hasHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8')
             && $request->hasHeader('X-Requested-With', 'XMLHttpRequest')
             && $request->hasHeader('Origin', 'https://veoaifree.com')
-            && $request->hasHeader('Referer', 'https://veoaifree.com/veo-video-generator/')
+            && $request->hasHeader('Referer', 'https://veoaifree.com/')
             && str_contains($request->header('Content-Type')[0] ?? '', 'multipart/form-data')
             && str_contains($body, 'shared_nonce_789')
             && str_contains($body, 'name="sceneData"')

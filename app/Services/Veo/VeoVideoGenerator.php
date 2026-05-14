@@ -10,16 +10,6 @@ use Illuminate\Support\Str;
 
 class VeoVideoGenerator
 {
-    private const VEO_GENERATE_VIDEO_URL = 'https://veoaifree.com/wp-admin/admin-ajax.php';
-
-    private const DEFAULT_HEADERS = [
-        'User-Agent' => 'Mozilla/5.0',
-        'Accept' => 'application/json, text/plain, */*',
-        'X-Requested-With' => 'XMLHttpRequest',
-        'Origin' => 'https://veoaifree.com',
-        'Referer' => 'https://veoaifree.com/veo-video-generator/',
-    ];
-
     public function __construct(
         protected VeoNonceFetcher $nonceFetcher,
     ) {}
@@ -52,7 +42,7 @@ class VeoVideoGenerator
         }
 
         try {
-            $response = $this->newRequest()->send('POST', self::VEO_GENERATE_VIDEO_URL, [
+            $response = $this->newRequest()->send('POST', $this->videoGeneratorUrl(), [
                 'multipart' => $this->multipartFields([
                     'action' => 'veo_video_generator',
                     'nonce' => $nonce,
@@ -104,7 +94,7 @@ class VeoVideoGenerator
         }
 
         try {
-            $response = $this->longRunningRequest()->send('POST', self::VEO_GENERATE_VIDEO_URL, [
+            $response = $this->longRunningRequest()->send('POST', $this->videoGeneratorUrl(), [
                 'multipart' => $this->multipartFields([
                     'action' => 'veo_video_generator',
                     'nonce' => $nonce,
@@ -130,7 +120,7 @@ class VeoVideoGenerator
     {
         return Http::timeout(30)
             ->connectTimeout(10)
-            ->withHeaders(self::DEFAULT_HEADERS);
+            ->withHeaders($this->defaultHeaders());
     }
 
     private function longRunningRequest(): PendingRequest
@@ -138,7 +128,40 @@ class VeoVideoGenerator
         return Http::withOptions([
             'timeout' => 0,
         ])->connectTimeout(10)
-            ->withHeaders(self::DEFAULT_HEADERS);
+            ->withHeaders($this->defaultHeaders());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function defaultHeaders(): array
+    {
+        return array_filter([
+            'Accept' => (string) config('services.veo.headers.accept'),
+            'Accept-Encoding' => (string) config('services.veo.headers.accept_encoding'),
+            'Accept-Language' => (string) config('services.veo.headers.accept_language'),
+            'Cache-Control' => (string) config('services.veo.headers.cache_control'),
+            'Cookie' => (string) config('services.veo.headers.cookie'),
+            'Priority' => (string) config('services.veo.headers.priority'),
+            'Referer' => (string) config('services.veo.headers.referer'),
+            'Sec-CH-UA' => (string) config('services.veo.headers.sec_ch_ua'),
+            'Sec-CH-UA-Mobile' => (string) config('services.veo.headers.sec_ch_ua_mobile'),
+            'Sec-CH-UA-Platform' => (string) config('services.veo.headers.sec_ch_ua_platform'),
+            'Sec-Fetch-Dest' => (string) config('services.veo.headers.sec_fetch_dest'),
+            'Sec-Fetch-Mode' => (string) config('services.veo.headers.sec_fetch_mode'),
+            'Sec-Fetch-Site' => (string) config('services.veo.headers.sec_fetch_site'),
+            'Sec-Fetch-User' => (string) config('services.veo.headers.sec_fetch_user'),
+            'Sec-GPC' => (string) config('services.veo.headers.sec_gpc'),
+            'Upgrade-Insecure-Requests' => (string) config('services.veo.headers.upgrade_insecure_requests'),
+            'User-Agent' => (string) config('services.veo.headers.user_agent'),
+            'X-Requested-With' => (string) config('services.veo.headers.x_requested_with'),
+            'Origin' => (string) config('services.veo.headers.origin'),
+        ], fn (string $value): bool => filled($value));
+    }
+
+    private function videoGeneratorUrl(): string
+    {
+        return (string) config('services.veo.video_generator_url');
     }
 
     /**
