@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import {
     conversionSection,
+    externalApiSection,
     featureCards,
     heroContent,
     outcomesSection,
@@ -185,6 +186,69 @@ export default function OrionLandingContent({
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="border-b border-white/10 bg-[#0d0d0d]">
+                <div className="mx-auto max-w-7xl px-6 py-12 lg:px-10 lg:py-16">
+                    <div className="max-w-3xl">
+                        <p className="text-xs font-medium tracking-[0.28em] text-[#f97316] uppercase">
+                            {externalApiSection.eyebrow}
+                        </p>
+                        <h2 className="mt-3 text-3xl font-semibold leading-tight text-white lg:text-5xl">
+                            {externalApiSection.title}
+                        </h2>
+                        <p className="mt-4 max-w-2xl text-sm leading-7 text-white/58 lg:text-base">
+                            {externalApiSection.description}
+                        </p>
+                    </div>
+
+                    <div className="mt-8 grid gap-6 lg:grid-cols-2">
+                        {externalApiSection.flows.map((flow) => (
+                            <div
+                                key={flow.title}
+                                data-gsap="reveal-card"
+                                className="rounded-sm border border-white/10 bg-[#141414] p-5"
+                            >
+                                <p className="text-sm font-medium text-white">
+                                    {flow.title}
+                                </p>
+
+                                <div className="mt-4 space-y-4">
+                                    {flow.items.map((item) => (
+                                        <div
+                                            key={`${flow.title}-${item.label}`}
+                                            className="rounded-sm border border-white/10 bg-black/25 p-4"
+                                        >
+                                            <p className="text-sm font-medium text-white">
+                                                {item.label}
+                                            </p>
+                                            <p className="mt-1 text-xs tracking-[0.18em] text-[#f97316] uppercase">
+                                                {item.endpoint}
+                                            </p>
+                                            <pre className="mt-3 overflow-x-auto rounded-sm border border-white/10 bg-[#0a0a0a] p-3 text-xs leading-6 text-white/72">
+                                                <code>{item.sample}</code>
+                                            </pre>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-8 grid gap-3">
+                        {externalApiSection.notes.map((note) => (
+                            <div
+                                key={note}
+                                className="flex items-start gap-3 border-b border-white/10 py-3"
+                            >
+                                <div className="mt-1 h-2 w-2 rounded-full bg-[#f97316]" />
+                                <p className="text-sm leading-6 text-white/60">
+                                    {note}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>

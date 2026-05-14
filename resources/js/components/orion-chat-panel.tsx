@@ -54,7 +54,7 @@ export default function OrionChatPanel({
                 <div>
                     <p className="text-sm font-medium">Prompt Console</p>
                     <p className="text-sm text-white/55">
-                        Write a scene, refine the direction, and Orion will turn it into a free video generation request.
+                        Write a scene, refine the direction, and Orion will turn it into a free video generation request. External API endpoints are available separately for custom integrations.
                     </p>
                 </div>
                 <div className="text-sm text-white/45">
@@ -166,7 +166,7 @@ export default function OrionChatPanel({
 
                     <div className="flex items-center justify-between gap-3">
                         <p className="text-sm text-white/55">
-                            Press Enter to generate. Use Shift+Enter for a new line.
+                            Press Enter to generate. Use Shift+Enter for a new line. The website chat stays simple while external Veo API use lives in separate endpoints.
                         </p>
 
                         <Button

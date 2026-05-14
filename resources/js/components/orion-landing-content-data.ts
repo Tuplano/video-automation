@@ -59,6 +59,49 @@ export const conversionSection = {
     description:
         'The quickest way to understand Orion is to try it: write a real scene, generate the first pass for free, and see how quickly an idea becomes a usable video concept.',
 };
+export const externalApiSection = {
+    eyebrow: 'External API',
+    title: 'Use the Veo endpoints directly from your own app, workflow, or automation.',
+    description:
+        'The website chat stays focused on the built-in experience, but the Veo routes are also available for external API use. Call them in sequence if you want step-by-step control, or use the combined endpoint when you want prompt-to-video URL in a single request.',
+    flows: [
+        {
+            title: 'Step-by-step flow',
+            items: [
+                {
+                    label: '1. Get a nonce',
+                    endpoint: 'GET /veo/nonce',
+                    sample: '{\n  "nonce": "nonce_abc123"\n}',
+                },
+                {
+                    label: '2. Start generation',
+                    endpoint: 'POST /veo/generate',
+                    sample: '{\n  "nonce": "nonce_abc123",\n  "prompt": "A cinematic rainy city street at night."\n}',
+                },
+                {
+                    label: '3. Fetch final video URL',
+                    endpoint: 'POST /veo/video-url',
+                    sample: '{\n  "nonce": "nonce_abc123",\n  "generate_video_id": "video_job_123"\n}',
+                },
+            ],
+        },
+        {
+            title: 'Combined flow',
+            items: [
+                {
+                    label: 'Single request for final URL',
+                    endpoint: 'POST /veo/generate-video-url',
+                    sample: '{\n  "nonce": "nonce_abc123",\n  "prompt": "A cinematic rainy city street at night."\n}',
+                },
+            ],
+        },
+    ],
+    notes: [
+        'Use the step-by-step flow when your client wants to manage generation state or poll for readiness itself.',
+        'Use the combined flow when you want the backend to generate and poll for the final video URL on your behalf.',
+        'The final `video_url` may still return `null` if Veo has not finished within the polling window.',
+    ],
+};
 
 export const outcomesSection = {
     eyebrow: 'Outcomes',
