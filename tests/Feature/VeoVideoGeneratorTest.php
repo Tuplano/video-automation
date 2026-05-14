@@ -5,6 +5,7 @@ use App\Services\Veo\VeoVideoGenerator;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Mockery\MockInterface;
 
 beforeEach(function () {
@@ -278,4 +279,111 @@ test('veo video generator returns null when final video lookup times out', funct
         ->fetchVideoUrl('video_job_123');
 
     expect($videoUrl)->toBeNull();
+});
+
+test('veo video generator can generate and return a final video url with the same nonce', function () {
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'veoaifree.com/*' => Http::sequence()
+            ->push([
+                'success' => true,
+                'data' => [
+                    'generate_video_id' => 'video_job_123',
+                ],
+            ], 200)
+            ->push([
+                'success' => true,
+                'data' => [
+                    'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
+                ],
+            ], 200),
+    ]);
+
+    Sleep::fake();
+
+    $videoResult = app(VeoVideoGenerator::class)
+        ->generateVideoUrlWithNonce(
+            'A cinematic vertical video of a rainy Manila street at night.',
+            'shared_nonce_789',
+        );
+
+    expect($videoResult)->toBe([
+        'nonce' => 'shared_nonce_789',
+        'generate_video_id' => 'video_job_123',
+        'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
+    ]);
+
+    Sleep::assertNeverSlept();
+});
+
+test('veo video generator polls until the final video url is ready', function () {
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'veoaifree.com/*' => Http::sequence()
+            ->push([
+                'success' => true,
+                'data' => [
+                    'generate_video_id' => 'video_job_123',
+                ],
+            ], 200)
+            ->push([
+                'success' => true,
+                'data' => [],
+            ], 200)
+            ->push([
+                'success' => true,
+                'data' => [
+                    'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
+                ],
+            ], 200),
+    ]);
+
+    Sleep::fake();
+
+    $videoResult = app(VeoVideoGenerator::class)
+        ->generateVideoUrlWithNonce(
+            'A cinematic vertical video of a rainy Manila street at night.',
+            'shared_nonce_789',
+            maxAttempts: 2,
+            pollDelayMilliseconds: 1500,
+        );
+
+    expect($videoResult)->toBe([
+        'nonce' => 'shared_nonce_789',
+        'generate_video_id' => 'video_job_123',
+        'video_url' => 'https://cdn.example.com/generated/final-video.mp4',
+    ]);
+
+    Sleep::assertSequence([
+        Sleep::for(1500)->milliseconds(),
+    ]);
+});
+
+test('veo video generator returns null final video url when generation id cannot be created', function () {
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'veoaifree.com/*' => Http::response([
+            'success' => true,
+            'data' => [],
+        ], 200),
+    ]);
+
+    Sleep::fake();
+
+    $videoResult = app(VeoVideoGenerator::class)
+        ->generateVideoUrlWithNonce(
+            'A cinematic vertical video of a rainy Manila street at night.',
+            'shared_nonce_789',
+        );
+
+    expect($videoResult)->toBe([
+        'nonce' => 'shared_nonce_789',
+        'generate_video_id' => null,
+        'video_url' => null,
+    ]);
+
+    Sleep::assertNeverSlept();
 });

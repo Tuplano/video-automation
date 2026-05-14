@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
         $middleware->preventRequestForgery(except: [
             'orion/chat',
+            'veo/generate',
+            'veo/generate-video-url',
+            'veo/video-url',
         ]);
 
         $middleware->web(append: [

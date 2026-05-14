@@ -6,6 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 
 class VeoVideoGenerator
@@ -19,6 +20,11 @@ class VeoVideoGenerator
         return $this->generateVideoIdResult($prompt)['generate_video_id'];
     }
 
+    public function generateVideoUrl(string $prompt): ?string
+    {
+        return $this->generateVideoUrlResult($prompt)['video_url'];
+    }
+
     /**
      * @return array{nonce: ?string, generate_video_id: ?string}
      */
@@ -27,6 +33,16 @@ class VeoVideoGenerator
         $nonce = $this->nonceFetcher->fetch();
 
         return $this->generateVideoIdWithNonce($prompt, $nonce);
+    }
+
+    /**
+     * @return array{nonce: ?string, generate_video_id: ?string, video_url: ?string}
+     */
+    public function generateVideoUrlResult(string $prompt): array
+    {
+        $nonce = $this->nonceFetcher->fetch();
+
+        return $this->generateVideoUrlWithNonce($prompt, $nonce);
     }
 
     /**
@@ -63,6 +79,61 @@ class VeoVideoGenerator
         return [
             'nonce' => $nonce,
             'generate_video_id' => $this->extractGenerateVideoId($response->body()),
+        ];
+    }
+
+    /**
+     * @return array{nonce: ?string, generate_video_id: ?string, video_url: ?string}
+     */
+    public function generateVideoUrlWithNonce(
+        string $prompt,
+        ?string $nonce,
+        int $maxAttempts = 10,
+        int $pollDelayMilliseconds = 2000,
+    ): array {
+        if (blank($nonce)) {
+            return [
+                'nonce' => null,
+                'generate_video_id' => null,
+                'video_url' => null,
+            ];
+        }
+
+        $generateVideo = $this->generateVideoIdWithNonce($prompt, $nonce);
+
+        if (blank($generateVideo['generate_video_id']) || blank($generateVideo['nonce'])) {
+            return [
+                'nonce' => $generateVideo['nonce'],
+                'generate_video_id' => $generateVideo['generate_video_id'],
+                'video_url' => null,
+            ];
+        }
+
+        $remainingAttempts = max(1, $maxAttempts);
+
+        for ($attempt = 1; $attempt <= $remainingAttempts; $attempt++) {
+            $videoResult = $this->fetchVideoUrlWithNonce(
+                $generateVideo['generate_video_id'],
+                $generateVideo['nonce'],
+            );
+
+            if (filled($videoResult['video_url'])) {
+                return [
+                    'nonce' => $videoResult['nonce'],
+                    'generate_video_id' => $generateVideo['generate_video_id'],
+                    'video_url' => $videoResult['video_url'],
+                ];
+            }
+
+            if ($attempt < $remainingAttempts) {
+                Sleep::for($pollDelayMilliseconds)->milliseconds();
+            }
+        }
+
+        return [
+            'nonce' => $generateVideo['nonce'],
+            'generate_video_id' => $generateVideo['generate_video_id'],
+            'video_url' => null,
         ];
     }
 
